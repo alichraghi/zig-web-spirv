@@ -21,8 +21,8 @@
         }
 
         const [vsSource, fsSource] = await Promise.all([
-            fetch('vert.glsl').then(res => res.text()),
-            fetch('frag.glsl').then(res => res.text())
+            fetch('bin/vert.glsl').then(res => res.text()),
+            fetch('bin/frag.glsl').then(res => res.text())
         ]);
 
         function loadShader(type, source) {
@@ -52,19 +52,25 @@
 
         gl.useProgram(program);
 
-        const vertices = new Float32Array([
-            0.0,  0.5,
-           -0.5, -0.5,
-            0.5, -0.5,
+        const vertexData = new Float32Array([
+            // positions  // colors
+            0.0,  0.5,    1.0, 0.0, 0.0,  // top (red)
+           -0.5, -0.5,    0.0, 1.0, 0.0,  // bottom left (green)
+            0.5, -0.5,    0.0, 0.0, 1.0   // bottom right (blue)
         ]);
 
         const positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
 
-        const aPosition = gl.getAttribLocation(program, 'aPosition');
-        gl.enableVertexAttribArray(aPosition);
-        gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+        const aPos = gl.getAttribLocation(program, 'a_pos');
+        const aColor = gl.getAttribLocation(program, 'a_color');
+
+        gl.enableVertexAttribArray(aPos);
+        gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 5 * 4, 0);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 5 * 4, 2 * 4);
+
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 3);

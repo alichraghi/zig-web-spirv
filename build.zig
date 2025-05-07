@@ -7,19 +7,33 @@ pub fn build(b: *std.Build) !void {
     const sc, const sc_translate = buildSpirvCross(b, target, optimize);
     b.installArtifact(sc);
 
+    const shader_target = b.resolveTargetQuery(try std.Build.parseTargetQuery(.{
+        .arch_os_abi = "spirv-vulkan",
+        .cpu_features = "generic+v1_5+shader",
+        .object_format = "spirv",
+    }));
+
     const vert = b.addObject(.{
         .name = "vert",
         .root_source_file = b.path("src/vert.zig"),
-        .target = b.resolveTargetQuery(try std.Build.parseTargetQuery(.{
-            .arch_os_abi = "spirv64-vulkan",
-            .cpu_features = "generic+v1_5+shader+int64",
-            .object_format = "spirv",
-        })),
+        .target = shader_target,
         .optimize = optimize,
         .use_llvm = false,
     });
     {
         const install = b.addInstallBinFile(vert.getEmittedBin(), "vert.spv");
+        b.getInstallStep().dependOn(&install.step);
+    }
+
+    const frag = b.addObject(.{
+        .name = "frag",
+        .root_source_file = b.path("src/frag.zig"),
+        .target = shader_target,
+        .optimize = optimize,
+        .use_llvm = false,
+    });
+    {
+        const install = b.addInstallBinFile(frag.getEmittedBin(), "frag.spv");
         b.getInstallStep().dependOn(&install.step);
     }
 
@@ -34,23 +48,23 @@ pub fn build(b: *std.Build) !void {
     s2g.root_module.addImport("sc", sc_translate);
     s2g.linkLibrary(sc);
     b.installArtifact(s2g);
+    b.installFile("www/index.html", "index.html");
 
-    const run_cmd = b.addRunArtifact(s2g);
-    run_cmd.addFileArg(vert.getEmittedBin());
-    const output = run_cmd.addOutputFileArg("vert.glsl");
     {
+        const run_cmd = b.addRunArtifact(s2g);
+        run_cmd.addFileArg(vert.getEmittedBin());
+        const output = run_cmd.addOutputFileArg("vert.glsl");
         const install = b.addInstallBinFile(output, "vert.glsl");
         b.getInstallStep().dependOn(&install.step);
     }
+    {
+        const run_cmd = b.addRunArtifact(s2g);
+        run_cmd.addFileArg(frag.getEmittedBin());
+        const output = run_cmd.addOutputFileArg("frag.glsl");
+        const install = b.addInstallBinFile(output, "frag.glsl");
+        b.getInstallStep().dependOn(&install.step);
+    }
 }
-
-// fn translate(
-//     b: *std.Build,
-//     sc: *std.Build.Step.Compile,
-//     input: std.Build.LazyPath,
-// ) !std.Build.LazyPath {
-
-// }
 
 fn buildSpirvCross(
     b: *std.Build,

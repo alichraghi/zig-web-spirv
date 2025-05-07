@@ -47,7 +47,7 @@ pub fn main() !void {
     var options: sc.spvc_compiler_options = undefined;
     _ = sc.spvc_compiler_create_compiler_options(compiler, &options);
     _ = sc.spvc_compiler_options_set_uint(options, sc.SPVC_COMPILER_OPTION_GLSL_ES, sc.SPVC_TRUE);
-    _ = sc.spvc_compiler_options_set_uint(options, sc.SPVC_COMPILER_OPTION_GLSL_VERSION, 200);
+    _ = sc.spvc_compiler_options_set_uint(options, sc.SPVC_COMPILER_OPTION_GLSL_VERSION, 300);
     _ = sc.spvc_compiler_install_compiler_options(compiler, options);
 
     var result: [*:0]const u8 = undefined;
