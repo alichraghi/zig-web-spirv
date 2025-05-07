@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Test</title>
+    <style>
+      body, html { margin: 0; height: 100%; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; }
+    </style>
+  </head>
+  <body>
+    <canvas id="glcanvas"></canvas>
+    <script>
+      async function main() {
+        const canvas = document.getElementById('glcanvas');
+        const gl = canvas.getContext('webgl2');
+
+        if (!gl) {
+            alert('WebGL not supported');
+            throw new Error('WebGL not supported');
+        }
+
+        const [vsSource, fsSource] = await Promise.all([
+            fetch('vert.glsl').then(res => res.text()),
+            fetch('frag.glsl').then(res => res.text())
+        ]);
+
+        function loadShader(type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error(gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource);
+        const fragmentShader = loadShader(gl.FRAGMENT_SHADER, fsSource);
+
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            console.error(gl.getProgramInfoLog(program));
+            throw new Error('Program failed to link');
+        }
+
+        gl.useProgram(program);
+
+        const vertices = new Float32Array([
+            0.0,  0.5,
+           -0.5, -0.5,
+            0.5, -0.5,
+        ]);
+
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+        const aPosition = gl.getAttribLocation(program, 'aPosition');
+        gl.enableVertexAttribArray(aPosition);
+        gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+
+    main();
+    </script>
+  </body>
+</html>

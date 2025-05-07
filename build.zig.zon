@@ -1,0 +1,17 @@
+.{
+    .name = .s2g,
+    .version = "0.0.0",
+    .fingerprint = 0x9750af91798081c3,
+    .minimum_zig_version = "0.14.0",
+    .dependencies = .{
+        .spirv_cross = .{
+            .url = "git+https://github.com/KhronosGroup/SPIRV-Cross#7918775748c5e2f5c40d9918ce68825035b5a1e1",
+            .hash = "N-V-__8AAJy2sAB8b_THY9otTKeiCADEUMqL6dqma3Rc-Nef",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
